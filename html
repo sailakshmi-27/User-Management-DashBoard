@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head> </head>
+
+<body>
+    <div class="container">
+        <h1>User Management</h1>
+
+        <button id="addUserBtn">Add User</button>
+
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+        </table>
+
+
+        <div id="userModal" class="modal">
+            <div class="modal-content">
+                <h2 id="modalTitle">Add User</h2>
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" required>
+
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" required>
+
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+
+                    <label for="department">Department:</label>
+                    <input type="text" id="department" required>
+
+                    <button type="submit" id="saveBtn">Save</button>
+                    <button type="button" id="cancelBtn">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
