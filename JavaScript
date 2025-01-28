@@ -1,0 +1,136 @@
+const apiUrl = 'https://jsonplaceholder.typicode.com/users';
+const userTableBody = document.getElementById('userTableBody');
+const addUserBtn = document.getElementById('addUserBtn');
+const userModal = document.getElementById('userModal');
+const userForm = document.getElementById('userForm');
+const errorMessage = document.getElementById('errorMessage');
+
+let users = [];
+let isEditing = false;
+let currentUserId = null;
+
+// Fetch all users
+async function fetchUsers() {
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Failed to fetch users.');
+        users = await response.json();
+        renderUserTable();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Render users in the table
+function renderUserTable() {
+    userTableBody.innerHTML = '';
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.name.split(' ')[0]}</td>
+            <td>${user.name.split(' ')[1]}</td>
+            <td>${user.email}</td>
+            <td>${user.company.name}</td>
+            <td>
+                <button onclick="editUser(${user.id})">Edit</button>
+                <button onclick="deleteUser(${user.id})">Delete</button>
+            </td>
+        `;
+        userTableBody.appendChild(row);
+    });
+}
+
+// Open the modal to add a user
+addUserBtn.addEventListener('click', () => {
+    isEditing = false;
+    userForm.reset();
+    document.getElementById('modalTitle').textContent = 'Add User';
+    userModal.style.display = 'flex';
+});
+
+// Edit an existing user
+function editUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+        isEditing = true;
+        currentUserId = userId;
+        document.getElementById('modalTitle').textContent = 'Edit User';
+        document.getElementById('firstName').value = user.name.split(' ')[0];
+        document.getElementById('lastName').value = user.name.split(' ')[1];
+        document.getElementById('email').value = user.email;
+        document.getElementById('department').value = user.company.name;
+        userModal.style.display = 'flex';
+    }
+}
+
+// Delete a user
+async function deleteUser(userId) {
+    try {
+        const response = await fetch(`${apiUrl}/${userId}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete user.');
+        users = users.filter(user => user.id !== userId);
+        renderUserTable();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Add or update a user
+userForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const user = {
+        name: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+        email: document.getElementById('email').value,
+        company: {
+            name: document.getElementById('department').value
+        }
+    };
+
+    try {
+        if (isEditing) {
+            // Edit user
+            const response = await fetch(`${apiUrl}/${currentUserId}`, {
+                method: 'PUT',
+                body: JSON.stringify(user),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+            if (!response.ok) throw new Error('Failed to update user.');
+            const updatedUser = await response.json();
+            users = users.map(u => (u.id === currentUserId ? updatedUser : u));
+        } else {
+            // Add user
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: JSON.stringify(user),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+            if (!response.ok) throw new Error('Failed to add user.');
+            const newUser = await response.json();
+            users.push(newUser);
+        }
+        userModal.style.display = 'none';
+        renderUserTable();
+    } catch (error) {
+        showError(error.message);
+    }
+});
+
+// Close modal when cancel button is clicked
+document.getElementById('cancelBtn').addEventListener('click', () => {
+    userModal.style.display = 'none';
+});
+
+// Show error message
+function showError(message) {
+    errorMessage.textContent = message;
+}
+
+// Initial load
+fetchUsers();
